@@ -1,0 +1,237 @@
+body {
+   margin: 0;
+   background-color: white;
+}
+table {
+    border-collapse: collapse;
+    width: 80%;
+}
+td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    padding: 10px;
+    height: 100px;
+    text-align: left;
+    vertical-align: top;
+}
+#headerBox {
+    position: fixed;
+    top: 0px;
+    width: 100%;
+    height: 70px;
+    background-color: #5caceb;
+    font-family: 'InkLipquid';
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    font-size: 35px;
+}
+#menuTitle{
+   margin-left: 30px;
+   font-family: 'EASTARJET-Medium';
+   font-size: 50px;
+   color: white;
+}
+#myInformTitle{
+   margin-top: 10px;
+   font-family: 'EASTARJET-Medium';
+   font-size: 30px;
+   text-align: center;
+   margin-top: 20px;
+}
+#myInform{
+   width: 80%;
+   margin-left: auto;
+   margin-right: auto;
+   padding-top: 10px;
+   padding-bottom: 10px;
+   border-radius: 20px;
+   text-align: center;
+   font-family: 'EASTARJET-Medium';
+   background-color: white;
+
+}
+.header{
+   width: 32%;
+}
+#menuBox {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    height: 100%;
+    width: 300px; 
+    background-color: #5caceb;
+    text-align: left;
+    transition: right 0.3s ease;
+}
+#informBox{
+   text-align: center;
+}
+#memberList{
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+}
+#bottomButton {
+   position: absolute;
+   bottom: 30px;
+   width: 100%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+ }
+.member{
+   background-color: #3c9ae3;
+   width: 150px;
+   height: 20px;
+   border-radius: 10px;
+   margin-top: 20px;
+   font-family: 'EASTARJET-Medium';
+}
+.modifybutton{
+   background-color: #3c9ae3;
+   width: 100px;
+   height: 30px;
+   border-radius: 10px;
+   margin-top: 20px;
+   margin-left: 10px;
+   margin-right: 10px;
+   font-family: 'EASTARJET-Medium';
+}
+.yearbutton{
+    width: 20px;
+    cursor: pointer;
+    background-color:  rgba(255, 255, 255, 0);
+}
+#yearBox{
+   margin-bottom: 20px;
+}
+#year{
+    color: #5caceb;
+    font-family: 'EASTARJET-Medium';
+    font-size: 30px;
+    margin-left: 20px;
+    margin-right: 20px; 
+}
+#logo{
+   text-align: left;
+}
+#menu{
+   text-align: right;
+}
+#menubutton{
+    width: 50px;
+    margin-right: 10px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+a {
+   text-decoration: none;
+}
+#memberName{
+   width:80%;
+   margin-top: 30px;
+   font-family: 'EASTARJET-Medium';
+   background-color: #0f88e5;
+   font-size: 30px;
+   color: white;
+   margin-left:auto;
+   margin-right:auto;
+}
+#calendarBox {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 100px;
+    background-color: white;
+ }
+.out{
+    margin-left:auto;
+    margin-right:auto;
+}
+.login{
+    display: block;
+    height: 40px;
+    width: 350px;
+    margin-bottom: 10px;
+    margin-left:auto;
+    margin-right:auto;
+    border-radius: 10px;
+}
+  #login{
+      display: block;
+      height: 40px;
+      width: 354px;
+      background-color: #5caceb;
+      cursor: pointer;
+      border-radius: 10px;
+      font-family: 'EASTARJET-Medium';
+  }
+  #bottomboxout{
+      text-align: center;
+  }
+  #bottombox{
+      display: flex;
+      width: 300px;
+      justify-content: space-between;
+      height: 40px;
+      margin-left:auto;
+      margin-right:auto;
+      margin-top: 10px;
+  }
+  .bottom{
+   color: rgb(85, 84, 84);
+   text-decoration: none;
+  }
+  #title{
+      color: #5caceb;
+      font-family: 'EASTARJET-Medium';
+      font-size: 50px; 
+  }
+  #myTableBox {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+}
+  #monthButtonBox{
+    display: flex;
+    gap:3%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  #monthButtonBox .monthButton {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    font-family: 'EASTARJET-Medium';
+    font-size: 20px; 
+    border-radius: 20px;
+    border-color: #5caceb;
+}
+#monthButtonBox .monthButton:hover {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1);
+    cursor: pointer;
+}
+#monthButtonBox .monthButton.selectedButton {
+    background-color: #5caceb;
+  }
+  @font-face {
+    font-family: 'EASTARJET-Medium';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_231029@1.1/EASTARJET-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'InkLipquid';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/InkLipquid.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@media only screen and (max-width: 360px) {
+    /* 핸드폰 화면에서 적용되는 스타일 규칙 */
+  }
