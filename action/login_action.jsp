@@ -29,11 +29,19 @@
    String id = null;
    String pw = null;
    String idx = null;
+   String name = null;
+   String phoneNum = null;
+   String position = null;
+   String department = null;
 
    if (result.next()) {
        idx = result.getString("idx");
        id = result.getString("id"); 
-       pw = result.getString("password"); 
+       pw = result.getString("password");
+       name = result.getString("name");
+       phoneNum = result.getString("phone_num");
+       position = result.getString("position");
+       department =result.getString("department");
    }
    if(id==null){
       session.setAttribute("errorMessage", "아이디가 존재하지 않습니다.");
@@ -43,11 +51,17 @@
       if (pwValue.equals(pw)) {
          session.setAttribute("loginMessage", "로그인 성공");
          session.setAttribute("idx", idx);
-         response.sendRedirect("../jsp/Schedule.jsp");
+         if(position.equals("팀장")){
+            response.sendRedirect("../jsp/Schedule.jsp");
+         }else if(position.equals("팀원")){
+            response.sendRedirect("../jsp/Schedule_member.jsp");
+         }
+         out.println("뭔데");
      }
       else{
          session.setAttribute("errorMessage", "비밀번호가 일치하지 않습니다.");
          response.sendRedirect("../index.jsp");
+         
       }
    }
 %>
@@ -59,7 +73,7 @@
 </head>
 <body>
    <script>
-      var id = '<%= id %>';
+      var id = '<%= position %>';
       var pw = '<%= pw %>';
       var pw2 = '<%= idx %>';
       console.log(id);

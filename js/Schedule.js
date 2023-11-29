@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
                               showPopup();
                            }
                            else{
-                              window.open("detail_member.html", "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
+                              window.open("detail_member.jsp", "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
 
                            }
                        }

@@ -10,6 +10,7 @@
    String nameValue = request.getParameter("name");
    String idValue = request.getParameter("id");
    String phonenumValue = request.getParameter("phone_num");
+   String cleanPhoneNumber = phonenumValue.replaceAll("[^0-9]", "");
 
    // 커넥터 파링 찾는 부분
    Class.forName("com.mysql.jdbc.Driver");
@@ -20,7 +21,7 @@
    PreparedStatement query = connect.prepareStatement(sql);
    query.setString(1, nameValue);
    query.setString(2, idValue);
-   query.setString(3, phonenumValue);
+   query.setString(3, cleanPhoneNumber);
 
    // SQL 전송
    ResultSet result = query.executeQuery();

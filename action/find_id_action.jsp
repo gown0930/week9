@@ -14,6 +14,7 @@
    request.setCharacterEncoding("utf-8");
    String nameValue = request.getParameter("name");
    String phonenumValue = request.getParameter("phone_num");
+   String cleanPhoneNumber = phonenumValue.replaceAll("[^0-9]", "");
 
    // 커넥터 파링 찾는 부분
    Class.forName("com.mysql.jdbc.Driver");
@@ -23,7 +24,7 @@
    String sql = "SELECT * FROM user WHERE name=? AND phone_num=?";
    PreparedStatement query = connect.prepareStatement(sql);
    query.setString(1, nameValue);
-   query.setString(2, phonenumValue);
+   query.setString(2, cleanPhoneNumber);
 
    // SQL 전송
    ResultSet result = query.executeQuery();

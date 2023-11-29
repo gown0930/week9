@@ -71,16 +71,6 @@
       var passwordMatchMessage = document.getElementById("passwordMatchMessage");
       var passwordErrorMessage = document.getElementById("passwordErrorMessage");
 
-      console.log(duplicateMessage);
-      console.log(errorMessage);
-      console.log(id);
-      console.log(name);
-      console.log(phone_num);
-      console.log(department);
-      console.log(position);
-
-
-   
       if (duplicateMessage && duplicateMessage !== 'null') {
           alert(duplicateMessage);
           
