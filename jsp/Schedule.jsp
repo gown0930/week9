@@ -126,6 +126,52 @@ session.setAttribute("teamMembers", teamMembers);
 
     </div>
     <script>
+        
+   function redrawTable() {
+
+
+       table.innerHTML = '';
+
+       var a = 1;
+       var daysInMonth = getDaysInMonth(selectedMonth);
+       var numRows = (daysInMonth <= 28) ? 4 : 5; 
+       // 28일 이하인 경우에는 4행, 그 이상일 경우에는 5행
+       for (var i = 1; i <= numRows; i++) {
+           var row = table.insertRow();
+
+           for (var j = 1; j <= 7; j++) {
+               var cell = row.insertCell();
+               if (a <= daysInMonth) {
+                   cell.textContent = a;
+                   a++;
+                   cell.style.fontFamily = 'EASTARJET-Medium';
+                   var currentDate = new Date();
+                   var day = currentDate.getDate()+1;
+                   cell.style.backgroundColor = '#cddce8';
+                   if (a === day && document.getElementById('year').innerText ==year && selectedMonth==month) {
+                            console.log(day);
+                            console.log(year);
+                            console.log(month);   
+                            cell.style.backgroundColor = '#5caceb';
+                        }
+   
+                   cell.addEventListener('click', function () {
+                       if (selectedMonth) {
+                           //alert('클릭한 셀: ' + this.textContent + ', 선택한 달: ' + selectedMonth);
+                           if(selectedMember==null||selectedMember=='내 일정 보기'){
+                              showPopup(this.textContent);
+                           }
+                           else {
+                              var url = "detail_member.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + this.textContent;
+                              window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
+                           }
+                       }
+                   });
+               }
+           }
+       }
+   }
+
 
       var memberNames = <%=teamMembers%>;
       console.log(memberNames);
@@ -163,6 +209,7 @@ session.setAttribute("teamMembers", teamMembers);
 
             var loginMessage = '<%= session.getAttribute("loginMessage") %>';
             var idx = '<%= session.getAttribute("idx") %>';
+            var successMessage = '<%= session.getAttribute("successMessage") %>';
 
       if (loginMessage && loginMessage!== 'null') {
           alert(loginMessage);
@@ -173,110 +220,78 @@ session.setAttribute("teamMembers", teamMembers);
          console.log(idx);
          <% session.removeAttribute("idValue"); %>
       }
-      var successMessage = '<%= session.getAttribute("successMessage") %>';
-            if (successMessage && successMessage!== 'null') {
+            
+      if (successMessage && successMessage!== 'null') {
                alert(successMessage);
                <% session.removeAttribute("successMessage"); %>
             }
 
-            function toggleMenu() {
-   console.log('toggleMenu function called');
-   var menuBox = document.getElementById('menuBox');
-   var currentRight = parseInt(getComputedStyle(menuBox).right);
+        function toggleMenu() {
+            console.log('toggleMenu function called');
+            var menuBox = document.getElementById('menuBox');
+            var currentRight = parseInt(getComputedStyle(menuBox).right);
 
-   // 메뉴의 현재 위치에 따라 다른 위치로 이동
-   if (currentRight === 0) {
-       menuBox.style.right = '-300px';
-   } else {
-       menuBox.style.right = '0';
-   }
-}
-var month=null;
-function getCurrentDate() {
-   var currentDate = new Date();
-   var year = currentDate.getFullYear();
-   month = currentDate.getMonth() + 1; 
-   var day = currentDate.getDate();
-   return year + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
-}
+            // 메뉴의 현재 위치에 따라 다른 위치로 이동
+            if (currentRight === 0) {
+                menuBox.style.right = '-300px';
+            } else {
+                menuBox.style.right = '0';
+            }
+        }
+        
+        var year =null;
+        var month=null;
+        var day = null;
+        var selectedMember = null; 
 
-function setCurrentDate() {
-   var currentDateElement = document.getElementById('currentDate');
-   var yearElement = document.getElementById('year');
+        //오늘 날짜 갖고오기
+        function getCurrentDate() {
+        var currentDate = new Date();
+        year = currentDate.getFullYear();
+        month = currentDate.getMonth() + 1; 
+        day = currentDate.getDate();
+        return year + '-' + (month < 10 ? '0' + month : month) + '-' + (day < 10 ? '0' + day : day);
+        }
+        //헤더에 오늘 날짜 출력 + 처음에 현재 년도 출력
+        function setCurrentDate() {
+            var currentDateElement = document.getElementById('currentDate');
+            var yearElement = document.getElementById('year');
 
-   var currentDate = getCurrentDate();
-   var year = new Date().getFullYear(); // 현재 년도 가져오기
+            var currentDate = getCurrentDate();
 
-   // 엘리먼트의 내용 설정
-   currentDateElement.textContent = currentDate;
-   yearElement.textContent = year;
-}
+            currentDateElement.textContent = currentDate;
+            yearElement.textContent = year;
+        }
 
-function changeYear(offset) {
-   // 현재 연도를 가져오기
-   var currentYear = parseInt(document.getElementById('year').innerText);
+        //년도 바꾸는거
+        function changeYear(offset) {
+        // 현재 연도를 가져오기
+        var currentYear = parseInt(document.getElementById('year').innerText);
 
-   // 새로운 연도 계산
-   var newYear = currentYear + offset;
+        // 새로운 연도 계산
+        var newYear = currentYear + offset;
 
-   // 연도 업데이트
-   document.getElementById('year').innerText = newYear;
-}
+        // 연도 업데이트
+        document.getElementById('year').innerText = newYear;
+        redrawTable();
+        }
 
-setCurrentDate();
+        setCurrentDate();
 
-function redrawTable() {
-       // 기존의 표 내용을 모두 지움
-       table.innerHTML = '';
+        //멤버 버튼 출력하는거
+        function updateCondition(memberName) {
+            selectedMember = memberName.trim();
+            console.log(selectedMember);
 
-       // 5행 반복
-       var a = 1;
-       var daysInMonth = getDaysInMonth(selectedMonth);
-       var numRows = (daysInMonth <= 28) ? 4 : 5; // 28일 이하인 경우에는 4행, 그 이상일 경우에는 5행
-       for (var i = 1; i <= numRows; i++) {
-           // 새로운 행 생성
-           var row = table.insertRow();
+            if (selectedMember !== '내 일정 보기') {
+                document.getElementById('memberName').innerHTML = selectedMember + " 팀원의 일정";
+            } else {
+                document.getElementById('memberName').innerHTML = '';
+            }
+        }
 
-           for (var j = 1; j <= 7; j++) {
-               var cell = row.insertCell();
-               if (a <= daysInMonth) {
-                   cell.textContent = a;
-                   a++;
-                   cell.style.fontFamily = 'EASTARJET-Medium';
-                   var currentDate = new Date();
-                   var day = currentDate.getDate()+1;
-                   cell.style.backgroundColor = '#cddce8';
-                   if (a === day) {
-                       cell.style.backgroundColor = '#5caceb';
-                   }
-   
-                   cell.addEventListener('click', function () {
-                       if (selectedMonth) {
-                           //alert('클릭한 셀: ' + this.textContent + ', 선택한 달: ' + selectedMonth);
-                           showPopup();
-                       }
-                   });
-               }
-           }
-       }
-}
-
-var selectedMember = null; 
-
-function updateCondition(memberName) {
-    selectedMember = memberName.trim();
-    console.log(selectedMember);
-
-    if (selectedMember !== '내 일정 보기') {
-        document.getElementById('memberName').innerHTML = selectedMember + " 팀원의 일정";
-    } else {
-        console.log("야");
-        document.getElementById('memberName').innerHTML = '';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-   function showPopup(day) {
+   //상세 일정
+    function showPopup(day) {
         var url = "detail.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + day;
         window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
     }
@@ -290,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
    var selectedMonth = month;
    
-
+//달력 그리기
    function redrawTable() {
 
 
@@ -312,9 +327,12 @@ document.addEventListener('DOMContentLoaded', function () {
                    var currentDate = new Date();
                    var day = currentDate.getDate()+1;
                    cell.style.backgroundColor = '#cddce8';
-                   if (a === day) {
-                       cell.style.backgroundColor = '#5caceb';
-                   }
+                   if (a === day && document.getElementById('year').innerText ==year && selectedMonth==month) {
+                            console.log(day);
+                            console.log(year);
+                            console.log(month);   
+                            cell.style.backgroundColor = '#5caceb';
+                        }
    
                    cell.addEventListener('click', function () {
                        if (selectedMonth) {
@@ -333,6 +351,7 @@ document.addEventListener('DOMContentLoaded', function () {
        }
    }
 
+   //월별로 날짜 수
    function getDaysInMonth(month) {
        // 1, 3, 5, 7, 8, 10, 12월은 31일까지
        if ([1, 3, 5, 7, 8, 10, 12].includes(month)) {
@@ -346,6 +365,7 @@ document.addEventListener('DOMContentLoaded', function () {
        }
    }
 
+   //버튼 생성
    for (var i = 1; i <= 12; i++) {
        var button = document.createElement('button');
        button.textContent = i;
@@ -369,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
            selectedMonth = clickedMonth;
 
            // 표를 다시 그리는 함수 호출
-           redrawTable();
+            redrawTable();
        });
        monthButtonContainer.appendChild(button);
 
@@ -378,9 +398,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
          }
          redrawTable();
-
-
-      });      
+  
     </script>
 
 </body>
