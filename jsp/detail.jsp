@@ -1,4 +1,58 @@
 <%@ page language="java" contentType="text/html" pageEncoding="utf-8" %>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="java.sql.ResultSet" %>
+<%@ page import="java.sql.DriverManager" %>
+<%@ page import="java.sql.SQLException" %>
+<%@ page import="java.sql.Date" %>
+<%@ page import="java.sql.Time" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
+<% 
+String user_idx = request.getParameter("user_idx");
+String year = request.getParameter("year");
+String month = request.getParameter("month");
+String day = request.getParameter("day");
+String inputDate = year + "-" + month + "-" + day;
+
+request.setCharacterEncoding("UTF-8");
+
+Connection connect = null;
+PreparedStatement scheduleQuery = null;
+ResultSet scheduleResult = null;
+
+List<List<String>> scheduleList = new ArrayList<>();
+
+try {
+    // 연결 설정
+    connect = DriverManager.getConnection("jdbc:mysql://localhost/week10", "haeju", "0930");
+
+    String scheduleSql = "SELECT * FROM schedule WHERE user_idx = ? AND date = ?";
+    scheduleQuery = connect.prepareStatement(scheduleSql);
+
+    scheduleQuery.setInt(1, Integer.parseInt(user_idx));
+    scheduleQuery.setString(2, inputDate);
+
+    scheduleResult = scheduleQuery.executeQuery();
+
+    while (scheduleResult.next()) {
+        int idx = scheduleResult.getInt("idx");
+        String content = scheduleResult.getString("content");
+        Time time = scheduleResult.getTime("time");
+
+        // 각 일정의 정보를 리스트에 추가
+        List<String> scheduleInfo = new ArrayList<>();
+        scheduleInfo.add(String.valueOf(idx));
+        scheduleInfo.add(time.toString());
+        scheduleInfo.add(content);
+
+        scheduleList.add(scheduleInfo);
+    }
+} catch (SQLException e) {
+    e.printStackTrace();
+}
+
+%>
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,64 +61,20 @@
 </head>
 <body>
    <div id="headerBox"></div>
-   <div id="mainBox">
-      <div class="schedule" data-id="1">
-         <span>오전 07 : 30</span>
-         <span>출근</span>
-         <button class="detailButton" onclick="showEditForm(1)">수정</button>
-         <button class="detailButton" onclick="deleteSchedule(1)">삭제</button>
-     </div>
-     <div class="editForm" data-id="1" style="display: none;">
-         <input type="time" id="editTimeInput" name="timeInput">
-         <input type="text" id="editEventInput" placeholder="일정을 입력하세요">
-         <button class="detailButton" onclick="saveEdit(1)">저장</button>
-     </div>
-     
-     <div class="schedule" data-id="2">
-         <span>오후 01 : 00</span>
-         <span>미팅</span>
-         <button class="detailButton" onclick="showEditForm(2)">수정</button>
-         <button class="detailButton" onclick="deleteSchedule(2)">삭제</button>
-     </div>
-     <div class="editForm" data-id="2" style="display: none;">
-         <input type="time" id="editTimeInput" name="timeInput">
-         <input type="text" id="editEventInput" placeholder="일정을 입력하세요">
-         <button class="detailButton" onclick="saveEdit(2)">저장</button>
-     </div>
+   <div id="mainBox"></div>
 
-     <div class="schedule" data-id="3">
-         <span>오후 06 : 00</span>
-         <span>퇴근</span>
-         <button class="detailButton" onclick="showEditForm(3)">수정</button>
-         <button class="detailButton" onclick="deleteSchedule(3)">삭제</button>
-     </div>
-     <div class="editForm" data-id="3" style="display: none;">
-         <input type="time" id="editTimeInput" name="timeInput">
-         <input type="text" id="editEventInput" placeholder="일정을 입력하세요">
-         <button class="detailButton" onclick="saveEdit(3)">저장</button>
-     </div>
-
-     <div class="schedule" data-id="4">
-        <span>오후 06 : 00</span>
-        <span>퇴근</span>
-        <button class="detailButton" onclick="showEditForm(4)">수정</button>
-        <button class="detailButton" onclick="deleteSchedule(4)">삭제</button>
-    </div>
-    <div class="editForm" data-id="3" style="display: none;">
-        <input type="time" id="editTimeInput" name="timeInput">
-        <input type="text" id="editEventInput" placeholder="일정을 입력하세요">
-        <button class="detailButton" onclick="saveEdit(4)">저장</button>
-    </div>
-
-   </div>
-
-   <form id="addForm" action="../action/detail_action.jsp">
+   <form id="addForm" action="../action/detail_action.jsp" method="POST" >
+        <input type="hidden" name="user_idx">
+        <input type="hidden" name="year">
+        <input type="hidden" name="month">
+        <input type="hidden" name="day">
         <input type="time" id="addTimeInput" name="timeInput" required>
         <input type="text" id="addEventInput" name="eventInput" placeholder="일정을 입력하세요" required>
         <button type="submit" class="detailButton">일정 추가</button>
     </form>
 
    <script>
+
       function getQueryParam(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
@@ -74,15 +84,32 @@
          var year = getQueryParam("year");
          var month = getQueryParam("month");
          var day = getQueryParam("day");
+         var user_idx = getQueryParam("user_idx");
+         console.log(user_idx);
+
+         document.querySelector('input[name="year"]').value = year;
+        document.querySelector('input[name="month"]').value = month;
+        document.querySelector('input[name="day"]').value = day;
+        document.querySelector('input[name="user_idx"]').value = user_idx;
 
          var headerBox = document.getElementById('headerBox');
         headerBox.innerHTML = year + '-' + month + '-' + day + ' 상세 일정';
 
-
-         const schedules = [
-            { id: 5, time: '07:30', event: '출근' },
-            // 추가적인 일정 데이터를 필요에 따라 여기에 추가할 수 있습니다.
+        var schedules = [
+            <%
+            for (int i = 0; i < scheduleList.size(); i++) {
+            %>
+                {
+                    "id": "<%= scheduleList.get(i).get(0) %>",
+                    "time": "<%= scheduleList.get(i).get(1) %>",
+                    "event": "<%= scheduleList.get(i).get(2) %>"
+                }<%= (i == scheduleList.size() - 1) ? "" : "," %>
+            <%
+            }
+            %>
         ];
+
+    console.log(schedules);
 
         function renderScheduleEvent(schedule) {
             const scheduleDiv = document.createElement('div');
@@ -90,7 +117,7 @@
             scheduleDiv.setAttribute('data-id', schedule.id);
 
             const timeSpan = document.createElement('span');
-            timeSpan.innerHTML = schedule.time;
+            timeSpan.innerHTML = schedule.time.substring(0, 5);
             scheduleDiv.appendChild(timeSpan);
 
             const eventSpan = document.createElement('span');

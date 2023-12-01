@@ -1,13 +1,19 @@
-<%@ page language="java" contentType="text/html" pageEncoding="utf-8" %>
-<%@ page import="java.sql.*" %>
-<%@ page import="java.util.ArrayList" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.Connection" %>
+<%@ page import="java.sql.PreparedStatement" %>
+<%@ page import="java.sql.ResultSet" %>
+<%@ page import="java.sql.DriverManager" %>
+<%@ page import="java.sql.SQLException" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
 
 <%
 String idx = (String) session.getAttribute("idx");
 
 Connection connect = null;
 PreparedStatement preparedStatement = null;
+PreparedStatement scheduleQuery = null;
 ResultSet resultSet = null;
 
 String id = null;
@@ -19,7 +25,12 @@ String department = null;
 // 리스트 선언
 List<String> teamMembers = new ArrayList<>();
 
+
 try {
+    // JDBC 드라이버 로드
+    Class.forName("com.mysql.cj.jdbc.Driver");
+
+    // 데이터베이스 연결
     connect = DriverManager.getConnection("jdbc:mysql://localhost/week10", "haeju", "0930");
 
     // 사용자 정보 가져오기
@@ -42,25 +53,34 @@ try {
         preparedStatement.setString(2, "팀원");
         resultSet = preparedStatement.executeQuery();
 
-        out.println("Team Members in the Department:<br>");
         while (resultSet.next()) {
             // 팀원 이름을 리스트에 추가
-            teamMembers.add("\""+resultSet.getString("name")+"\"");
+            teamMembers.add("\"" + resultSet.getString("name") + "\"");
         }
     } else {
         out.println("사용자 정보를 찾을 수 없습니다.");
     }
-} catch (Exception e) {
+} catch (ClassNotFoundException | SQLException e) {
     e.printStackTrace();
 } finally {
+    // 각종 리소스 닫아주기
     if (resultSet != null) resultSet.close();
     if (preparedStatement != null) preparedStatement.close();
-    if (connect != null) connect.close();
 }
 
-// 리스트를 세션에 저장
-session.setAttribute("teamMembers", teamMembers);
+List<String> scheduleDates = new ArrayList<>();
+
+String scheduleSql = "SELECT date FROM schedule WHERE user_idx = ?";
+preparedStatement = connect.prepareStatement(scheduleSql);
+preparedStatement.setString(1, idx);
+resultSet = preparedStatement.executeQuery();
+while (resultSet.next()){
+    String date = resultSet.getString("date");
+    scheduleDates.add("'" + date + "'");
+}
 %>
+
+
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -102,7 +122,7 @@ session.setAttribute("teamMembers", teamMembers);
 
    
          <div id="bottomButton">
-            <a href="../index.html">
+            <a href="../index.jsp">
                <button class="modifybutton">로그아웃</button>
             </a>
             <button class="modifybutton">회원 탈퇴</button>
@@ -127,56 +147,24 @@ session.setAttribute("teamMembers", teamMembers);
     </div>
     <script>
         
-   function redrawTable() {
-
-
-       table.innerHTML = '';
-
-       var a = 1;
-       var daysInMonth = getDaysInMonth(selectedMonth);
-       var numRows = (daysInMonth <= 28) ? 4 : 5; 
-       // 28일 이하인 경우에는 4행, 그 이상일 경우에는 5행
-       for (var i = 1; i <= numRows; i++) {
-           var row = table.insertRow();
-
-           for (var j = 1; j <= 7; j++) {
-               var cell = row.insertCell();
-               if (a <= daysInMonth) {
-                   cell.textContent = a;
-                   a++;
-                   cell.style.fontFamily = 'EASTARJET-Medium';
-                   var currentDate = new Date();
-                   var day = currentDate.getDate()+1;
-                   cell.style.backgroundColor = '#cddce8';
-                   if (a === day && document.getElementById('year').innerText ==year && selectedMonth==month) {
-                            console.log(day);
-                            console.log(year);
-                            console.log(month);   
-                            cell.style.backgroundColor = '#5caceb';
-                        }
-   
-                   cell.addEventListener('click', function () {
-                       if (selectedMonth) {
-                           //alert('클릭한 셀: ' + this.textContent + ', 선택한 달: ' + selectedMonth);
-                           if(selectedMember==null||selectedMember=='내 일정 보기'){
-                              showPopup(this.textContent);
-                           }
-                           else {
-                              var url = "detail_member.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + this.textContent;
-                              window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
-                           }
-                       }
-                   });
-               }
-           }
-       }
-   }
-
-
       var memberNames = <%=teamMembers%>;
       console.log(memberNames);
 
-            // 멤버 리스트에 버튼 추가
+      var scheduleDates = <%=scheduleDates%>;
+      console.log(scheduleDates);
+      var dateCount = {};
+      for (var i = 0; i < scheduleDates.length; i++) {
+            var date = scheduleDates[i];
+            if (!dateCount[date]) {
+                dateCount[date] = 1;
+            } else {
+                dateCount[date]++;
+            }
+        }
+        console.log(dateCount);
+  
+
+
             const memberListDiv = document.getElementById('memberList');
 
             memberNames.forEach(memberName => {
@@ -262,14 +250,14 @@ session.setAttribute("teamMembers", teamMembers);
             currentDateElement.textContent = currentDate;
             yearElement.textContent = year;
         }
-
+        var newYear=null;
         //년도 바꾸는거
         function changeYear(offset) {
         // 현재 연도를 가져오기
         var currentYear = parseInt(document.getElementById('year').innerText);
 
         // 새로운 연도 계산
-        var newYear = currentYear + offset;
+        newYear = currentYear + offset;
 
         // 연도 업데이트
         document.getElementById('year').innerText = newYear;
@@ -291,10 +279,11 @@ session.setAttribute("teamMembers", teamMembers);
         }
 
    //상세 일정
-    function showPopup(day) {
-        var url = "detail.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + day;
-        window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
-    }
+   function showPopup(day) {
+    var idx = '<%= idx %>';
+    var url = "detail.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + day + "&user_idx=" + idx;
+    window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
+}
 
 
 
@@ -303,53 +292,71 @@ session.setAttribute("teamMembers", teamMembers);
    var monthButtonContainer = document.getElementById('monthButtonBox');
    var table = document.getElementById('myTable');
 
+   //선택된 월
    var selectedMonth = month;
    
 //달력 그리기
-   function redrawTable() {
+function redrawTable() {
+    table.innerHTML = '';
 
+    var a = 1;
+    var daysInMonth = getDaysInMonth(selectedMonth);
+    var numRows = (daysInMonth <= 28) ? 4 : 5;
 
-       table.innerHTML = '';
+    for (var i = 1; i <= numRows; i++) {
+        var row = table.insertRow();
 
-       var a = 1;
-       var daysInMonth = getDaysInMonth(selectedMonth);
-       var numRows = (daysInMonth <= 28) ? 4 : 5; 
-       // 28일 이하인 경우에는 4행, 그 이상일 경우에는 5행
-       for (var i = 1; i <= numRows; i++) {
-           var row = table.insertRow();
+        for (var j = 1; j <= 7; j++) {
+            var cell = row.insertCell();
+            cell.style.backgroundColor = '#cddce8';
+            if (a <= daysInMonth) {
+                var paddedDay = a.toString().padStart(2, '0');
 
-           for (var j = 1; j <= 7; j++) {
-               var cell = row.insertCell();
-               if (a <= daysInMonth) {
-                   cell.textContent = a;
-                   a++;
-                   cell.style.fontFamily = 'EASTARJET-Medium';
-                   var currentDate = new Date();
-                   var day = currentDate.getDate()+1;
-                   cell.style.backgroundColor = '#cddce8';
-                   if (a === day && document.getElementById('year').innerText ==year && selectedMonth==month) {
-                            console.log(day);
-                            console.log(year);
-                            console.log(month);   
-                            cell.style.backgroundColor = '#5caceb';
+                var dayDiv = document.createElement('div');
+
+                dayDiv.textContent = a;
+
+                dayDiv.style.fontFamily = 'EASTARJET-Medium';
+                cell.appendChild(dayDiv);
+
+                var currentDate = new Date();
+                var day = currentDate.getDate() + 1;
+                dayDiv.style.backgroundColor = '#cddce8';
+                if (dateCount.hasOwnProperty(year + '-' + ('0' + selectedMonth).slice(-2) + '-' + paddedDay) && dateCount[year + '-' + ('0' + selectedMonth).slice(-2) + '-' + paddedDay] > 0) {
+                    console.log(dateCount[year + '-' + ('0' + selectedMonth).slice(-2) + '-' + paddedDay]);
+                    var countDiv = document.createElement('div');
+                    countDiv.textContent = dateCount[year + '-' + ('0' + selectedMonth).slice(-2) + '-' + paddedDay];
+                    countDiv.style.color = 'red';
+                    cell.appendChild(countDiv);
+                }
+                if (a === day && document.getElementById('year').innerText == year && selectedMonth == month) {
+                    console.log(day);
+                    console.log(year);
+                    console.log(month);
+                    dayDiv.style.backgroundColor = '#5caceb';
+                }
+
+                cell.addEventListener('click', (function (clickedDay) {
+                    return function () {
+                        if (selectedMonth) {
+                            if (selectedMember == null || selectedMember == '내 일정 보기') {
+                                showPopup(clickedDay);
+                                console.log(dayDiv.textContent);
+                            } else {
+                                var url = "detail_member.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + clickedDay;
+                                window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
+                            }
                         }
-   
-                   cell.addEventListener('click', function () {
-                       if (selectedMonth) {
-                           //alert('클릭한 셀: ' + this.textContent + ', 선택한 달: ' + selectedMonth);
-                           if(selectedMember==null||selectedMember=='내 일정 보기'){
-                              showPopup(this.textContent);
-                           }
-                           else {
-                              var url = "detail_member.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + this.textContent;
-                              window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
-                           }
-                       }
-                   });
-               }
-           }
-       }
-   }
+                    };
+                })(a));
+
+
+                a++;
+            }
+        }
+    }
+}
+
 
    //월별로 날짜 수
    function getDaysInMonth(month) {
