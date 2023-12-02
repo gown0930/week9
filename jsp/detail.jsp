@@ -111,33 +111,69 @@ try {
 
     console.log(schedules);
 
-        function renderScheduleEvent(schedule) {
-            const scheduleDiv = document.createElement('div');
-            scheduleDiv.classList.add('schedule');
-            scheduleDiv.setAttribute('data-id', schedule.id);
+    function renderScheduleEvent(schedule) {
+    const scheduleDiv = document.createElement('div');
+    scheduleDiv.classList.add('schedule');
+    scheduleDiv.setAttribute('data-id', schedule.id);
 
-            const timeSpan = document.createElement('span');
-            timeSpan.innerHTML = schedule.time.substring(0, 5);
-            scheduleDiv.appendChild(timeSpan);
+    const timeSpan = document.createElement('span');
+    timeSpan.innerHTML = schedule.time.substring(0, 5);
+    scheduleDiv.appendChild(timeSpan);
 
-            const eventSpan = document.createElement('span');
-            eventSpan.textContent = schedule.event;
-            scheduleDiv.appendChild(eventSpan);
+    const eventSpan = document.createElement('span');
+    eventSpan.textContent = schedule.event;
+    scheduleDiv.appendChild(eventSpan);
 
-            const editButton = document.createElement('button');
-            editButton.classList.add('detailButton');
-            editButton.textContent = '수정';
-            editButton.onclick = () => showEditForm(schedule.id);
-            scheduleDiv.appendChild(editButton);
+    const editButton = document.createElement('button');
+    editButton.classList.add('detailButton');
+    editButton.textContent = '수정';
+    editButton.onclick = () => showEditForm(schedule.id);
+    scheduleDiv.appendChild(editButton);
 
-            const deleteButton = document.createElement('button');
-            deleteButton.classList.add('detailButton');
-            deleteButton.textContent = '삭제';
-            deleteButton.onclick = () => deleteSchedule(schedule.id);
-            scheduleDiv.appendChild(deleteButton);
+    const deleteForm = document.createElement('form'); // 삭제를 위한 폼 생성
+    deleteForm.method = 'POST';
+    deleteForm.action = '../action/detail_delete_action.jsp';
 
-            document.getElementById('mainBox').appendChild(scheduleDiv);
-        }
+    const scheduleIdInput = document.createElement('input');
+    scheduleIdInput.type = 'hidden';
+    scheduleIdInput.name = 'scheduleId';
+    scheduleIdInput.value = schedule.id;
+    deleteForm.appendChild(scheduleIdInput);
+
+    const userIndexInput = document.createElement('input');
+    userIndexInput.type = 'hidden';
+    userIndexInput.name = 'user_idx';
+    userIndexInput.value = user_idx;
+    deleteForm.appendChild(userIndexInput);
+
+    const yearInput = document.createElement('input');
+    yearInput.type = 'hidden';
+    yearInput.name = 'year';
+    yearInput.value = year;
+    deleteForm.appendChild(yearInput);
+
+    const monthInput = document.createElement('input');
+    monthInput.type = 'hidden';
+    monthInput.name = 'month';
+    monthInput.value = month;
+    deleteForm.appendChild(monthInput);
+
+    const dayInput = document.createElement('input');
+    dayInput.type = 'hidden';
+    dayInput.name = 'day';
+    dayInput.value = day;
+    deleteForm.appendChild(dayInput);
+
+    const deleteButton = document.createElement('button');
+    deleteButton.classList.add('detailButton');
+    deleteButton.textContent = '삭제';
+    deleteButton.type = 'submit'; // 버튼을 submit으로 지정
+    deleteForm.appendChild(deleteButton);
+
+    scheduleDiv.appendChild(deleteForm); // 폼을 스케줄 div에 추가
+
+    document.getElementById('mainBox').appendChild(scheduleDiv);
+}
 
         function renderEditForm(scheduleId) {
             const editFormDiv = document.createElement('div');
@@ -145,25 +181,87 @@ try {
             editFormDiv.setAttribute('data-id', scheduleId);
             editFormDiv.style.display = 'none';
 
+            const form = document.createElement('form'); // 폼 생성
+            form.method = 'POST';
+            form.action = '../action/detail_edit_action.jsp';
+
+            const IdxInput = document.createElement('input');
+            IdxInput.type = 'hidden'; 
+            IdxInput.name = 'scheduleId'; 
+            IdxInput.value = scheduleId; 
+            form.appendChild(IdxInput);
+
+            const userIdxInput = document.createElement('input');
+            userIdxInput.type = 'hidden'; 
+            userIdxInput.name = 'user_idx';  // 수정: 'user_idx'로 변경
+            userIdxInput.value = user_idx;   // 수정: user_idx의 값으로 변경
+            form.appendChild(userIdxInput);
+
+
+            const yearInput = document.createElement('input');
+            yearInput.type = 'hidden'; 
+            yearInput.name = 'year'; 
+            yearInput.value = year;   
+            form.appendChild(yearInput);
+
+            const monthInput = document.createElement('input');
+            monthInput.type = 'hidden'; 
+            monthInput.name = 'month'; 
+            monthInput.value = month; 
+            form.appendChild(monthInput);
+
+            const dayInput = document.createElement('input');
+            dayInput.type = 'hidden'; 
+            dayInput.name = 'day'; 
+            dayInput.value = day;   
+            form.appendChild(dayInput);
+
             const timeInput = document.createElement('input');
             timeInput.type = 'time';
             timeInput.id = 'editTimeInput' + scheduleId;
-            timeInput.name = 'timeInput';
-            editFormDiv.appendChild(timeInput);
+            timeInput.name = 'editTimeInput'; // 수정 폼의 시간 입력 필드의 이름
+            timeInput.required = true; // 필수 입력 필드로 설정
+            form.appendChild(timeInput);
 
             const eventInput = document.createElement('input');
             eventInput.type = 'text';
             eventInput.id = 'editEventInput' + scheduleId;
+            eventInput.name = 'editEventInput'; // 수정 폼의 이벤트 입력 필드의 이름
             eventInput.placeholder = '일정을 입력하세요';
-            editFormDiv.appendChild(eventInput);
+            eventInput.required = true; // 필수 입력 필드로 설정
+            form.appendChild(eventInput);
 
             const saveButton = document.createElement('button');
+            saveButton.type = 'submit'; // 버튼을 submit으로 지정
             saveButton.classList.add('detailButton');
             saveButton.textContent = '저장';
-            saveButton.onclick = () => saveEdit(scheduleId);
-            editFormDiv.appendChild(saveButton);
+            editFormDiv.appendChild(form); // 폼을 수정 폼 div에 추가
+            form.appendChild(saveButton); // 버튼을 폼에 추가
 
             document.getElementById('mainBox').appendChild(editFormDiv);
+        }
+
+        // 수정된 내용을 전송하는 함수
+        function saveEdit(scheduleId) {
+
+            const editedTime = document.getElementById('editTimeInput' + scheduleId).value;
+            const editedEvent = document.getElementById('editEventInput' + scheduleId).value;
+
+            // 예시: FormData를 사용하여 전송
+            const formData = new FormData();
+            formData.append('scheduleId', scheduleId);
+            formData.append('editedTime', editedTime);
+            formData.append('editedEvent', editedEvent);
+
+            const user_idx = document.getElementById('user_idx').value;
+            const year = document.getElementById('year').value;
+            const month = document.getElementById('month').value;
+            const day = document.getElementById('day').value;
+
+            formData.append('user_idx', user_idx);
+            formData.append('year', year);
+            formData.append('month', month);
+            formData.append('day', day);
         }
 
         schedules.forEach(schedule => {
@@ -179,8 +277,37 @@ try {
         }
 
         function deleteSchedule(scheduleId) {
-            alert('스케줄을 삭제합니다.');
-            document.querySelector('.schedule[data-id="' + scheduleId + '"]').style.display = 'none';
+            // 사용자에게 삭제 여부를 묻는 등의 확인 절차를 추가할 수 있습니다.
+
+            // 예시: 확인 절차를 거친 후 삭제할 경우
+            const confirmDelete = confirm('일정을 삭제하시겠습니까?');
+            if (!confirmDelete) {
+                return;
+            }
+
+            // FormData를 사용하여 삭제할 일정 정보를 서버로 전송
+            const formData = new FormData();
+            formData.append('scheduleId', scheduleId);
+            formData.append('user_idx', user_idx);
+            formData.append('year', year);
+            formData.append('month', month);
+            formData.append('day', day);
+
+            fetch('../action/detail_delete_action.jsp', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 서버에서의 응답을 처리할 수 있는 로직을 추가할 수 있습니다.
+                console.log(data);
+
+                // 화면에서 삭제된 일정을 감추는 등의 작업 수행
+                document.querySelector('.schedule[data-id="' + scheduleId + '"]').style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         }
 
         function saveEdit(scheduleId) {
@@ -190,6 +317,8 @@ try {
             // schedule 보이도록 설정
             document.querySelector('.schedule[data-id="' + scheduleId + '"]').style.display = 'block';
         }
+
+
 
   </script>
 </body>

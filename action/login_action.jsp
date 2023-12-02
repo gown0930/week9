@@ -51,12 +51,7 @@
       if (pwValue.equals(pw)) {
          session.setAttribute("loginMessage", "로그인 성공");
          session.setAttribute("idx", idx);
-         if(position.equals("팀장")){
-            response.sendRedirect("../jsp/Schedule.jsp");
-         }else if(position.equals("팀원")){
-            response.sendRedirect("../jsp/Schedule_member.jsp");
-         }
-         out.println("뭔데");
+         response.sendRedirect("../jsp/Schedule.jsp");
      }
       else{
          session.setAttribute("errorMessage", "비밀번호가 일치하지 않습니다.");

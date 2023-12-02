@@ -24,6 +24,7 @@ String department = null;
 
 // 리스트 선언
 List<String> teamMembers = new ArrayList<>();
+List<String> teamMembersIdx = new ArrayList<>();
 
 
 try {
@@ -47,7 +48,7 @@ try {
         department = resultSet.getString("department");
 
         // 해당 부서의 '팀원'인 사용자 정보 가져오기
-        String sqlDepartment = "SELECT name FROM user WHERE department = ? AND position = ?";
+        String sqlDepartment = "SELECT * FROM user WHERE department = ? AND position = ?";
         preparedStatement = connect.prepareStatement(sqlDepartment);
         preparedStatement.setString(1, department);
         preparedStatement.setString(2, "팀원");
@@ -56,7 +57,14 @@ try {
         while (resultSet.next()) {
             // 팀원 이름을 리스트에 추가
             teamMembers.add("\"" + resultSet.getString("name") + "\"");
+            teamMembersIdx.add("\"" + resultSet.getString("idx") + "\"");
         }
+
+
+
+
+
+
     } else {
         out.println("사용자 정보를 찾을 수 없습니다.");
     }
@@ -104,7 +112,7 @@ while (resultSet.next()){
       <span id="menuTitle">menu</span>
 
       <div id="informBox">
-         <div id="myInformTitle">내 정보</div>
+         <div id="myInformtitle">내 정보</div>
          <div id="myInform">
             ID: <%= id %><br>
             이름: <%= name %><br>
@@ -116,7 +124,7 @@ while (resultSet.next()){
          <input type="button" class="modifybutton" value="내 정보 수정">
      </a>
    
-         <div id="myInformTitle">팀원 일정 보기</div>
+         <div id="myInformTitle"></div>
          <div id="memberList"></div>
 
 
@@ -146,6 +154,13 @@ while (resultSet.next()){
 
     </div>
     <script>
+
+    // memberIdx 배열 생성
+
+        // 콘솔에 memberIdx 출력
+
+        var teamMembersIdx = <%=teamMembersIdx%>;
+      console.log(teamMembersIdx);
         
       var memberNames = <%=teamMembers%>;
       console.log(memberNames);
@@ -162,31 +177,56 @@ while (resultSet.next()){
             }
         }
         console.log(dateCount);
-  
 
+        var position ="<%= position %>";
 
-            const memberListDiv = document.getElementById('memberList');
+        function createMemberButtons(memberNames) {
+        const myInformTitleDiv = document.getElementById('myInformTitle');
+        myInformTitleDiv.textContent = '팀원 일정 보기';
 
-            memberNames.forEach(memberName => {
-               const button = document.createElement('button');
-               button.classList.add('member');
-               button.textContent = memberName;
-               button.onclick = function() {
-                  updateCondition(memberName);
-               };
+        const memberListDiv = document.getElementById('memberList');
 
-               memberListDiv.appendChild(button);
-            });
+        memberNames.forEach((memberName, i) => {
+            const button = document.createElement('button');
+            button.classList.add('member');
+            button.textContent = memberName;
 
-            const myScheduleButton = document.createElement('button');
-            myScheduleButton.classList.add('member');
-            myScheduleButton.textContent = '내 일정 보기';
-            myScheduleButton.onclick = function() {
-               updateCondition('내 일정 보기');
-               // "내 일정 보기" 버튼이 클릭되면 selectedMember를 초기화
-               selectedMember = null;
+            // 버튼의 id를 teamMembersIdx로 설정
+            button.id = 'member_' + teamMembersIdx[i];
+
+            button.onclick = function () {
+                updateCondition(memberName);
             };
-            memberListDiv.appendChild(myScheduleButton);
+
+            memberListDiv.appendChild(button);
+        });
+
+        const myScheduleButton = document.createElement('button');
+        myScheduleButton.classList.add('member');
+        myScheduleButton.textContent = '내 일정 보기';
+        myScheduleButton.onclick = function () {
+            updateCondition('내 일정 보기');
+            // "내 일정 보기" 버튼이 클릭되면 selectedMember를 초기화
+            selectedMember = null;
+        };
+
+        memberListDiv.appendChild(myScheduleButton);
+    }
+        // 팀장인 경우에만 실행
+        if (position === '팀장') {
+            createMemberButtons(memberNames);
+        }
+                //멤버 버튼 출력하는거
+        function updateCondition(memberName) {
+            selectedMember = memberName.trim();
+            console.log(selectedMember);
+
+            if (selectedMember !== '내 일정 보기') {
+                document.getElementById('memberName').innerHTML = selectedMember + " 팀원의 일정";
+            } else {
+                document.getElementById('memberName').innerHTML = '';
+            }
+        }
             
             
             console.log("ID: <%= id %>");
@@ -194,6 +234,7 @@ while (resultSet.next()){
             console.log("Phone Number: <%= phoneNum %>");
             console.log("Position: <%= position %>");
             console.log("Department: <%= department %>");
+        
 
             var loginMessage = '<%= session.getAttribute("loginMessage") %>';
             var idx = '<%= session.getAttribute("idx") %>';
@@ -266,23 +307,13 @@ while (resultSet.next()){
 
         setCurrentDate();
 
-        //멤버 버튼 출력하는거
-        function updateCondition(memberName) {
-            selectedMember = memberName.trim();
-            console.log(selectedMember);
-
-            if (selectedMember !== '내 일정 보기') {
-                document.getElementById('memberName').innerHTML = selectedMember + " 팀원의 일정";
-            } else {
-                document.getElementById('memberName').innerHTML = '';
-            }
-        }
 
    //상세 일정
    function showPopup(day) {
     var idx = '<%= idx %>';
     var url = "detail.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + day + "&user_idx=" + idx;
-    window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
+    var popup = window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
+
 }
 
 
@@ -320,7 +351,7 @@ function redrawTable() {
                 cell.appendChild(dayDiv);
 
                 var currentDate = new Date();
-                var day = currentDate.getDate() + 1;
+                var day = currentDate.getDate();
                 dayDiv.style.backgroundColor = '#cddce8';
                 if (dateCount.hasOwnProperty(year + '-' + ('0' + selectedMonth).slice(-2) + '-' + paddedDay) && dateCount[year + '-' + ('0' + selectedMonth).slice(-2) + '-' + paddedDay] > 0) {
                     console.log(dateCount[year + '-' + ('0' + selectedMonth).slice(-2) + '-' + paddedDay]);
@@ -343,7 +374,7 @@ function redrawTable() {
                                 showPopup(clickedDay);
                                 console.log(dayDiv.textContent);
                             } else {
-                                var url = "detail_member.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + clickedDay;
+                                var url = "detail_member.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + clickedDay+ "&user_idx=" + idx;;
                                 window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
                             }
                         }
