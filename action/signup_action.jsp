@@ -14,7 +14,7 @@
 
     // 데이터베이스 연결
     try (Connection connect = DriverManager.getConnection("jdbc:mysql://localhost/week10", "haeju", "0930")) {
-
+      //
         // 중복 확인 작업
         String idAction = request.getParameter("checkDuplicate");
         if ("true".equals(idAction)) {
@@ -39,6 +39,7 @@
                         session.setAttribute("idValue", id);
                         session.setAttribute("nameValue", name);
                         session.setAttribute("phone_numValue", phone_num);
+                        //다 try에 넣어주기....
                         response.sendRedirect("../jsp/signup.jsp");
                     }
                 }

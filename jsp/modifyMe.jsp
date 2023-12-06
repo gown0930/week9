@@ -54,7 +54,7 @@
       <link rel="stylesheet" type="text/css" href="../css/modifyMe.css">
    </head>
    <body>
-      <div id="header">Schedule Calendar</div>
+      <div id="header"><a href="Schedule.jsp">Schedule Calendar</a></div>
       <div id="imformBox">
          <form action="../action/modifyMe_action.jsp" method="post">
              <div id="title">내 정보 수정</div>

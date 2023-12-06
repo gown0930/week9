@@ -27,25 +27,25 @@ try {
     // 연결 설정
     connect = DriverManager.getConnection("jdbc:mysql://localhost/week10", "haeju", "0930");
 
-    String scheduleSql = "SELECT * FROM schedule WHERE user_idx = ? AND date = ?";
+    String scheduleSql = "SELECT * FROM schedule WHERE user_idx = ? AND date = ? ORDER BY time";
     scheduleQuery = connect.prepareStatement(scheduleSql);
-
+    
     scheduleQuery.setInt(1, Integer.parseInt(user_idx));
     scheduleQuery.setString(2, inputDate);
-
+    
     scheduleResult = scheduleQuery.executeQuery();
-
+    
     while (scheduleResult.next()) {
         int idx = scheduleResult.getInt("idx");
         String content = scheduleResult.getString("content");
         Time time = scheduleResult.getTime("time");
-
+    
         // 각 일정의 정보를 리스트에 추가
         List<String> scheduleInfo = new ArrayList<>();
         scheduleInfo.add(String.valueOf(idx));
         scheduleInfo.add(time.toString());
         scheduleInfo.add(content);
-
+    
         scheduleList.add(scheduleInfo);
     }
 } catch (SQLException e) {
@@ -277,9 +277,7 @@ try {
         }
 
         function deleteSchedule(scheduleId) {
-            // 사용자에게 삭제 여부를 묻는 등의 확인 절차를 추가할 수 있습니다.
 
-            // 예시: 확인 절차를 거친 후 삭제할 경우
             const confirmDelete = confirm('일정을 삭제하시겠습니까?');
             if (!confirmDelete) {
                 return;

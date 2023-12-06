@@ -18,7 +18,7 @@
    Class.forName("com.mysql.jdbc.Driver");
    Connection connect = DriverManager.getConnection("jdbc:mysql://localhost/week10", "haeju", "0930");
    // SQL 만들기
-   String sql = "SELECT * FROM user WHERE id=?";
+   String sql = "SELECT * FROM user WHERE id=?";//pw도 추가하기
    PreparedStatement query = connect.prepareStatement(sql);
    query.setString(1, idValue);
 
@@ -43,10 +43,11 @@
        position = result.getString("position");
        department =result.getString("department");
    }
-   if(id==null){
+   if(id==null){//else문으로 넣어주기
       session.setAttribute("errorMessage", "아이디가 존재하지 않습니다.");
       response.sendRedirect("../index.jsp");
    }
+
    else{
       if (pwValue.equals(pw)) {
          session.setAttribute("loginMessage", "로그인 성공");

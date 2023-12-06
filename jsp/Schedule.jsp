@@ -9,7 +9,13 @@
 <%@ page import="java.util.ArrayList" %>
 
 <%
-String idx = (String) session.getAttribute("idx");
+request.setCharacterEncoding("utf-8");
+
+String idx = null;
+
+String member_idx = null;
+
+String selectedMember =null;
 
 Connection connect = null;
 PreparedStatement preparedStatement = null;
@@ -26,8 +32,14 @@ String department = null;
 List<String> teamMembers = new ArrayList<>();
 List<String> teamMembersIdx = new ArrayList<>();
 
+List<String> scheduleDates = new ArrayList<>();
+
 
 try {
+    idx = (String) session.getAttribute("idx");//try에 들어가기
+    member_idx = request.getParameter("buttonId");
+    selectedMember = request.getParameter("selectedMember");
+
     // JDBC 드라이버 로드
     Class.forName("com.mysql.cj.jdbc.Driver");
 
@@ -39,6 +51,7 @@ try {
     preparedStatement = connect.prepareStatement(sqlUser);
     preparedStatement.setString(1, idx);
     resultSet = preparedStatement.executeQuery();
+    //그냥 세션으로 보내주기....
 
     if (resultSet.next()) {
         id = resultSet.getString("id");
@@ -48,6 +61,7 @@ try {
         department = resultSet.getString("department");
 
         // 해당 부서의 '팀원'인 사용자 정보 가져오기
+        // 팀장일 때만 실행되게 하기
         String sqlDepartment = "SELECT * FROM user WHERE department = ? AND position = ?";
         preparedStatement = connect.prepareStatement(sqlDepartment);
         preparedStatement.setString(1, department);
@@ -60,32 +74,34 @@ try {
             teamMembersIdx.add("\"" + resultSet.getString("idx") + "\"");
         }
 
-
-
-
-
-
     } else {
         out.println("사용자 정보를 찾을 수 없습니다.");
     }
+
+    //일정 수 가져오기
+    if(member_idx==null){
+        String scheduleSql = "SELECT date FROM schedule WHERE user_idx = ?";
+        preparedStatement = connect.prepareStatement(scheduleSql);
+        preparedStatement.setString(1, idx);
+        resultSet = preparedStatement.executeQuery();
+    }else{
+        String scheduleSql = "SELECT date FROM schedule WHERE user_idx = ?";
+        preparedStatement = connect.prepareStatement(scheduleSql);
+        preparedStatement.setString(1, member_idx);
+        resultSet = preparedStatement.executeQuery();
+    }
+    while (resultSet.next()){
+        String date = resultSet.getString("date");
+        scheduleDates.add("'" + date + "'");
+    }
+
 } catch (ClassNotFoundException | SQLException e) {
     e.printStackTrace();
-} finally {
-    // 각종 리소스 닫아주기
-    if (resultSet != null) resultSet.close();
-    if (preparedStatement != null) preparedStatement.close();
-}
+} 
+//try 안에 넣어주기....
+//월이랑 일 기준으로 넣어주기
 
-List<String> scheduleDates = new ArrayList<>();
 
-String scheduleSql = "SELECT date FROM schedule WHERE user_idx = ?";
-preparedStatement = connect.prepareStatement(scheduleSql);
-preparedStatement.setString(1, idx);
-resultSet = preparedStatement.executeQuery();
-while (resultSet.next()){
-    String date = resultSet.getString("date");
-    scheduleDates.add("'" + date + "'");
-}
 %>
 
 
@@ -96,9 +112,9 @@ while (resultSet.next()){
    <title>캘린더</title>
 </head>
 <body>
-    <div id="headerBox">
+    <header id="headerBox">
       <div class="header" id="logo">
-         Schedule Calendar
+        <a href="Schedule.jsp">Schedule Calendar</a>
       </div>
       <div class="header" id="today">
          <span id="currentDate"></span>
@@ -106,8 +122,8 @@ while (resultSet.next()){
       <div class="header" id="menu">
          <img src="../image/menu.png" id="menubutton" onclick="toggleMenu()">
       </div>
-    </div>
-    <div id="menuBox">
+    </header>
+    <nav id="menuBox">
       <img src="../image/menu.png" id="menubutton" onclick="toggleMenu()">
       <span id="menuTitle">menu</span>
 
@@ -130,14 +146,14 @@ while (resultSet.next()){
 
    
          <div id="bottomButton">
-            <a href="../index.jsp">
+            <a href="../action/logout_action.jsp">
                <button class="modifybutton">로그아웃</button>
             </a>
             <button class="modifybutton">회원 탈퇴</button>
          </div>
       </div>
-   </div>
-    <div id="calendarBox">
+    </nav>
+    <main id="calendarBox">
       <div id="yearBox">
          <img src="../image/left-arrow.png" class="yearbutton" onclick="changeYear(-1)">
          <span id="year"></span>
@@ -152,12 +168,24 @@ while (resultSet.next()){
 
 
 
-    </div>
+    </main>
     <script>
 
-    // memberIdx 배열 생성
+        
 
-        // 콘솔에 memberIdx 출력
+        var member_idx = <%=member_idx%>;
+        console.log("멤버 id"+member_idx);
+
+        var selectedMemberName = '<%= request.getParameter("selectedMember") %>';
+        console.log("멤버 이름"+selectedMemberName);
+        if (selectedMemberName != "내 일정 보기" && selectedMemberName != "null") {
+            document.getElementById('memberName').innerHTML = selectedMemberName + " 팀원의 일정";
+        }
+        
+
+        
+
+
 
         var teamMembersIdx = <%=teamMembersIdx%>;
       console.log(teamMembersIdx);
@@ -167,6 +195,7 @@ while (resultSet.next()){
 
       var scheduleDates = <%=scheduleDates%>;
       console.log(scheduleDates);
+
       var dateCount = {};
       for (var i = 0; i < scheduleDates.length; i++) {
             var date = scheduleDates[i];
@@ -192,10 +221,10 @@ while (resultSet.next()){
             button.textContent = memberName;
 
             // 버튼의 id를 teamMembersIdx로 설정
-            button.id = 'member_' + teamMembersIdx[i];
+            button.id = teamMembersIdx[i];
 
             button.onclick = function () {
-                updateCondition(memberName);
+                updateCondition(memberName, this.id);
             };
 
             memberListDiv.appendChild(button);
@@ -217,14 +246,63 @@ while (resultSet.next()){
             createMemberButtons(memberNames);
         }
                 //멤버 버튼 출력하는거
-        function updateCondition(memberName) {
+        function updateCondition(memberName, buttonId) {
             selectedMember = memberName.trim();
             console.log(selectedMember);
 
             if (selectedMember !== '내 일정 보기') {
                 document.getElementById('memberName').innerHTML = selectedMember + " 팀원의 일정";
+
+                // Create a form element
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'Schedule.jsp';  // schedule.jsp로 전달할 URL
+
+                // Create an input element for the button ID
+                var inputId = document.createElement('input');
+                inputId.type = 'hidden';
+                inputId.name = 'buttonId';  // 폼 데이터의 이름
+                inputId.value = buttonId;  // 실제 버튼의 ID
+
+                var inputName = document.createElement('input');
+                inputName.type = 'hidden';
+                inputName.name = 'selectedMember';  // 폼 데이터의 이름
+                inputName.value = selectedMember; 
+
+                form.appendChild(inputId);
+                form.appendChild(inputName);
+
+                // Append the form to the document body
+                document.body.appendChild(form);
+
+                // Submit the form
+                form.submit();
             } else {
                 document.getElementById('memberName').innerHTML = '';
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'Schedule.jsp';  // schedule.jsp로 전달할 URL
+
+                // Create an input element for the button ID
+                var inputId = document.createElement('input');
+                inputId.type = 'hidden';
+                inputId.name = 'buttonId';  // 폼 데이터의 이름
+                inputId.value = <%=idx%>;  // 실제 버튼의 ID
+
+                var inputName = document.createElement('input');
+                inputName.type = 'hidden';
+                inputName.name = 'selectedMember';  // 폼 데이터의 이름
+                inputName.value = selectedMember;  // 실제 버튼의 ID
+
+                form.appendChild(inputId);
+                form.appendChild(inputName);
+
+                // Append the form to the document body
+                document.body.appendChild(form);
+
+                // Submit the form
+                form.submit();
+                
             }
         }
             
@@ -256,6 +334,13 @@ while (resultSet.next()){
             }
 
         function toggleMenu() {
+            var idx = <%=idx%>;
+            if(idx==null){
+                alert("로그인 후 이용해주세요.");
+                return;
+            }
+            
+
             console.log('toggleMenu function called');
             var menuBox = document.getElementById('menuBox');
             var currentRight = parseInt(getComputedStyle(menuBox).right);
@@ -352,6 +437,7 @@ function redrawTable() {
 
                 var currentDate = new Date();
                 var day = currentDate.getDate();
+                var year = document.getElementById('year').innerText;
                 dayDiv.style.backgroundColor = '#cddce8';
                 if (dateCount.hasOwnProperty(year + '-' + ('0' + selectedMonth).slice(-2) + '-' + paddedDay) && dateCount[year + '-' + ('0' + selectedMonth).slice(-2) + '-' + paddedDay] > 0) {
                     console.log(dateCount[year + '-' + ('0' + selectedMonth).slice(-2) + '-' + paddedDay]);
@@ -370,11 +456,15 @@ function redrawTable() {
                 cell.addEventListener('click', (function (clickedDay) {
                     return function () {
                         if (selectedMonth) {
-                            if (selectedMember == null || selectedMember == '내 일정 보기') {
+                            var idx = <%=idx%>;
+                            if(idx==null){
+                                alert("로그인 후 이용해주세요.");
+                                return;
+                            }
+                            if (member_idx == null || selectedMemberName == null || selectedMemberName == '내 일정 보기') {
                                 showPopup(clickedDay);
-                                console.log(dayDiv.textContent);
                             } else {
-                                var url = "detail_member.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + clickedDay+ "&user_idx=" + idx;;
+                                var url = "detail_member.jsp?year=" + new Date().getFullYear() + "&month=" + selectedMonth + "&day=" + clickedDay+ "&user_idx=" + member_idx;;
                                 window.open(url, "a", "width=400, height=400, left=100, top=50, scrollbars=yes");
                             }
                         }
