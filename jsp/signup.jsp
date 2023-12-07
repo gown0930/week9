@@ -10,7 +10,9 @@
     <script src="../js/signup.js"></script>
 </head>
 <body>
-    <div id="header">Schedule Calendar</div>
+    <div id="header">
+      <a href="../index.jsp">Schedule Calendar</a>
+   </div>
     <form action="../action/signup_action.jsp" method="post" onsubmit="return validateForm()">
         <div id="imformBox">
             <div id="title">회원가입</div>

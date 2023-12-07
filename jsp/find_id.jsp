@@ -10,7 +10,7 @@
 <body>
    <div id="header">스케줄 캘린더</div>
    <div id="searchBox">
-      <form action="../action/find_id_action.jsp" method="post">
+      <form action="../action/find_id_action.jsp" method="post" onsubmit="return validateForm()">
          <div id="title">아이디 찾기</div>
          <input type="text" name="name" class="signup" placeholder="이름" required>
          <input type="text" name="phone_num" id="phone" class="signup" placeholder="전화번호" oninput="formatPhoneNumber()" maxlength="13" required>
@@ -39,6 +39,18 @@
                 // 변환된 전화번호를 다시 입력 폼에 설정
                 document.getElementById('phone').value = formattedPhoneNumber;
              }
+
+         function validateForm() {
+            var phoneNumber = document.getElementById('phone').value;
+            phoneNumber = phoneNumber.replace(/[^0-9]/g, '');
+            //핸드폰 번호 체크
+            if (phoneNumber.length <= 10) {
+               alert("정확한 번호를 입력해주세요.");
+               return false;
+            }
+
+            return true;
+         }
    </script>
 </body>
 </html>

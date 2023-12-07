@@ -317,6 +317,12 @@ try {
         }
 
 
+        window.onunload = function () {
+            // 팝업이 닫힐 때 부모 창 새로고침
+            window.opener.refreshParent();
+        };
+
+
 
   </script>
 </body>

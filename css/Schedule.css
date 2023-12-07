@@ -119,7 +119,11 @@ td {
 #yearBox{
    margin-bottom: 20px;
 }
+#yearform{
+   display: inline;
+}
 #year{
+   display: inline;
     color: #5caceb;
     font-family: 'EASTARJET-Medium';
     font-size: 30px;
