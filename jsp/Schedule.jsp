@@ -219,6 +219,9 @@ try {
          localStorage.removeItem('memberButtonIdx');
          localStorage.removeItem('memberButtonName');
       }
+      if(localStorage.getItem('selectedMonth')!=month){
+         localStorage.setItem('selectedMonth', month);
+      }
 
       if (selectedMemberName != "내 일정 보기" && selectedMemberName != "null") {
          document.getElementById('memberName').innerHTML = selectedMemberName + " 팀원의 일정";

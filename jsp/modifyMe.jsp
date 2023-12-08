@@ -56,7 +56,7 @@
    <body>
       <div id="header"><a href="Schedule.jsp">Schedule Calendar</a></div>
       <div id="imformBox">
-         <form action="../action/modifyMe_action.jsp" method="post">
+         <form action="../action/modifyMe_action.jsp" method="post" onsubmit="return validateForm()">
              <div id="title">내 정보 수정</div>
              <div id="id" name="id"></div>
      
@@ -183,5 +183,33 @@
                 // 변환된 전화번호를 다시 입력 폼에 설정
                 document.getElementById('phone').value = formattedPhoneNumber;
              }
+
+         function validateForm() {
+            var password = passwordInput.value;
+            var confirmPassword = confirmPasswordInput.value;
+            var phoneNumber = document.getElementById('phone').value;
+            phoneNumber = phoneNumber.replace(/[^0-9]/g, '');
+            var passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+            var idRegex = /^[a-z]+[a-z0-9]{6,19}$/;
+
+            if (!passwordRegex.test(password)) {
+               alert("비밀번호는 최소 8자 이상, 영문과 숫자를 조합해야 합니다.");
+               return false;
+            }
+            //비밀번호 일치 여부
+            if (password != confirmPassword) {
+               alert("비밀번호가 일치하지 않습니다.");
+               return false;
+            }
+            //핸드폰 번호 체크
+            if (phoneNumber.length <= 10) {
+               alert("정확한 번호를 입력해주세요.");
+               return false;
+            }
+
+
+            return true;
+         }
+
          </script>
    </body>
