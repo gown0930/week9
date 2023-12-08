@@ -450,6 +450,22 @@ function changeYear(offset) {
     // 폼의 hidden input에 연도 설정
     document.getElementById('yearInput').value = newYear;
     document.getElementById('monthInput').value = selectedMonth;
+    var storedMemberButtonIdx = localStorage.getItem('memberButtonIdx');
+    var storedMemberButtonName = localStorage.getItem('memberButtonName');
+
+   if (storedMemberButtonIdx && storedMemberButtonName) {
+      var inputId = document.createElement('input');
+      inputId.type = 'hidden';
+      inputId.name = 'buttonId';
+      inputId.value = storedMemberButtonIdx;  // 실제 버튼의 ID
+      document.getElementById('yearForm').appendChild(inputId);
+
+      var inputName = document.createElement('input');
+      inputName.type = 'hidden';
+      inputName.name = 'selectedMember';  // 폼 데이터의 이름
+      inputName.value = storedMemberButtonName; 
+      document.getElementById('yearForm').appendChild(inputName);
+   }
 
     // 폼 직접 제출
     document.getElementById('yearForm').submit();
