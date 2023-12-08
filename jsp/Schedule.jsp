@@ -202,6 +202,9 @@ try {
 
     </main>
     <script>
+
+
+
       var year =<%=year%>;
       console.log("년"+year);
       var month =<%=month%>;
@@ -211,6 +214,12 @@ try {
 
       var selectedMemberName = '<%= request.getParameter("selectedMember") %>';
       console.log("멤버 이름"+selectedMemberName);
+
+      if(member_idx==null || selectedMemberName==null){
+         localStorage.removeItem('memberButtonIdx');
+         localStorage.removeItem('memberButtonName');
+      }
+
       if (selectedMemberName != "내 일정 보기" && selectedMemberName != "null") {
          document.getElementById('memberName').innerHTML = selectedMemberName + " 팀원의 일정";
       }
@@ -277,6 +286,7 @@ try {
          createMemberButtons(memberNames);
       }
          //멤버 버튼 클릭 시
+
       function updateCondition(memberName, buttonId) {
          selectedMember = memberName.trim();
          console.log(selectedMember);
@@ -298,6 +308,10 @@ try {
             inputName.name = 'selectedMember';  // 폼 데이터의 이름
             inputName.value = selectedMember; 
 
+            localStorage.setItem('memberButtonIdx', buttonId);
+            localStorage.setItem('memberButtonName', selectedMember);
+            console.log("전달함");
+
             form.appendChild(inputId);
             form.appendChild(inputName);
 
@@ -307,6 +321,9 @@ try {
                 // Submit the form
             form.submit();
          } else {
+            localStorage.removeItem('memberButtonIdx');
+            localStorage.removeItem('memberButtonName');
+
             document.getElementById('memberName').innerHTML = '';
             var form = document.createElement('form');
             form.method = 'POST';
@@ -601,7 +618,6 @@ for (var i = 1; i <= 12; i++) {
 
 
 function createAndSubmitForm(month) {
-
   var form = document.createElement('form');
   form.action = 'Schedule.jsp'; // 여기에 실제로 전송할 URL을 지정하세요.
   form.method = 'post';
@@ -610,21 +626,38 @@ function createAndSubmitForm(month) {
   hiddenInput.type = 'hidden';
   hiddenInput.name = 'selectedMonth';
   hiddenInput.value = month;
-
   form.appendChild(hiddenInput);
-
 
   var yearInput = document.createElement('input');
   yearInput.type = 'hidden';
   yearInput.name = 'year';
   yearInput.value = document.getElementById('year').textContent;
-
   form.appendChild(yearInput);
+
+  // 값이 있을 때만 추가
+  var storedMemberButtonIdx = localStorage.getItem('memberButtonIdx');
+  var storedMemberButtonName = localStorage.getItem('memberButtonName');
+
+  if (storedMemberButtonIdx && storedMemberButtonName) {
+    var inputId = document.createElement('input');
+    inputId.type = 'hidden';
+    inputId.name = 'buttonId';
+    inputId.value = storedMemberButtonIdx;  // 실제 버튼의 ID
+    form.appendChild(inputId);
+
+    var inputName = document.createElement('input');
+    inputName.type = 'hidden';
+    inputName.name = 'selectedMember';  // 폼 데이터의 이름
+    inputName.value = storedMemberButtonName; 
+    form.appendChild(inputName);
+  }
+
   document.body.appendChild(form);
 
   // 프로그래밍 방식으로 폼 제출
   form.submit();
 }
+
 
    redrawTable();
   
